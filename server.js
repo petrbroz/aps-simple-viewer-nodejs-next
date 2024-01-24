@@ -6,8 +6,13 @@ import { getAccessToken, listObjects, uploadObject, translateObject, urnify } fr
 import { PORT } from "./config.js";
 
 const server = fastify({ logger: true });
-server.register(fastifyStatic, { root: path.join(import.meta.dirname, "wwwroot") }); // import.meta.dirname requires Node.js v20 or newer
-server.register(fastifyMultipart, { attachFieldsToBody: true, limits: { fileSize: Infinity } });
+server.register(fastifyStatic, {
+    root: path.join(import.meta.dirname, "wwwroot")
+}); // import.meta.dirname requires Node.js v20 or newer
+server.register(fastifyMultipart, {
+    attachFieldsToBody: true,
+    limits: { fileSize: Infinity }
+});
 server.get("/token", async (request, reply) => getAccessToken());
 server.get("/models", async (request, reply) => {
     const objects = await listObjects();
