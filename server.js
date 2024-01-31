@@ -1,44 +1,29 @@
-import * as path from "node:path";
-import { fastify } from "fastify";
-import { fastifyStatic } from "@fastify/static";
-import { fastifyMultipart } from "@fastify/multipart";
-import { getAccessToken, listObjects, uploadObject, translateObject, urnify } from "./aps.js";
-import { PORT } from "./config.js";
+import { createServer, plugins } from 'restify';
+import { getAccessToken, listObjects, uploadObject, translateObject, urnify } from './aps.js';
+import { PORT } from './config.js';
 
-const server = fastify({ logger: true });
-server.register(fastifyStatic, {
-    root: path.join(import.meta.dirname, "wwwroot")
-}); // import.meta.dirname requires Node.js v20 or newer
-server.register(fastifyMultipart, {
-    attachFieldsToBody: true,
-    limits: { fileSize: Infinity }
+const server = createServer();
+server.use(plugins.bodyParser({ mapParams: true, mapFiles: true, maxBodySize: 0 }));
+server.get('/*', plugins.serveStaticFiles('./wwwroot'));
+
+server.get('/token', async function (req, res) {
+    const credentials = await getAccessToken();
+    res.send(credentials);
 });
-server.get("/token", async (request, reply) => getAccessToken());
-server.get("/models", async (request, reply) => {
+
+server.get('/models', async function (req, res) {
     const objects = await listObjects();
-    return objects.map(obj => ({
-        name: obj.objectKey,
-        urn: urnify(obj.objectId)
-    }));
-});
-server.post("/models", async (request, reply) => {
-    const field = request.body["model-file"];
-    if (!field) {
-        throw new Error("The required field 'model-file' is missing.");
-    }
-    const buffer = await field.toBuffer();
-    const obj = await uploadObject(field.filename, buffer);
-    const urn = urnify(obj.objectId);
-    await translateObject(urn, request.body['model-zip-entrypoint']);
-    return {
-        name: field.filename,
-        urn: urn
-    };
+    res.send(objects.map(o => ({ name: o.objectKey, urn: urnify(o.objectId) })));
 });
 
-try {
-    await server.listen({ port: PORT });
-} catch (err) {
-    console.error(err);
-    process.exit(1);
-}
+server.post('/models', async function (req, res) {
+    const filename = req.files['model'].name;
+    const { model, entrypoint } = req.params;
+    const obj = await uploadObject(filename, model);
+    const job = await translateObject(urnify(obj.objectId), entrypoint);
+    res.send({ urn: job.urn });
+});
+
+server.listen(PORT, function () {
+    console.log('Server listening at', server.url);
+});

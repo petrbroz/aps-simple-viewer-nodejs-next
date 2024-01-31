@@ -1,4 +1,6 @@
-- testing fastify instead of express (supports async/await nicely, no need for try-catch blocks)
+- exploring [restify](http://restify.com/) instead of express
+    - supports async/await nicely, no need for try-catch blocks
+    - plugins for static file serving and multipart uploads already in the bundle
 - using ES6 modules (easier for making incremental changes to code)
 - would be nice if OSS SDK provided convenience methods (e.g., collating paginated results)
 - maybe move the "is model ready?" checks to the client?

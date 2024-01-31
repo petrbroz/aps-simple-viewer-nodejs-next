@@ -1,9 +1,8 @@
-import * as fs from "node:fs/promises";
-import APS from "forge-apis";
-import { APS_CLIENT_ID, APS_CLIENT_SECRET, APS_BUCKET } from "./config.js";
+import APS from 'forge-apis';
+import { APS_CLIENT_ID, APS_CLIENT_SECRET, APS_BUCKET } from './config.js';
 
-const internalAuthClient = new APS.AuthClientTwoLeggedV2(APS_CLIENT_ID, APS_CLIENT_SECRET, ["bucket:read", "data:read", "data:create", "data:write"], true);
-const publicAuthClient = new APS.AuthClientTwoLeggedV2(APS_CLIENT_ID, APS_CLIENT_SECRET, ["viewables:read"], true);
+const internalAuthClient = new APS.AuthClientTwoLeggedV2(APS_CLIENT_ID, APS_CLIENT_SECRET, ['bucket:read', 'data:read', 'data:create', 'data:write'], true);
+const publicAuthClient = new APS.AuthClientTwoLeggedV2(APS_CLIENT_ID, APS_CLIENT_SECRET, ['viewables:read'], true);
 
 async function getInternalToken() {
     if (!internalAuthClient.isAuthorized()) {
@@ -12,15 +11,11 @@ async function getInternalToken() {
     return internalAuthClient.getCredentials();
 }
 
-async function getPublicToken() {
+export async function getAccessToken() {
     if (!publicAuthClient.isAuthorized()) {
         await publicAuthClient.authenticate();
     }
     return publicAuthClient.getCredentials();
-}
-
-export async function getAccessToken() {
-    return getPublicToken();
 }
 
 export async function listObjects() {

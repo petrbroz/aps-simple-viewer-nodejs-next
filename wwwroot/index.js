@@ -32,10 +32,10 @@ async function setupModelUpload(viewer) {
     input.onchange = async () => {
         const file = input.files[0];
         let data = new FormData();
-        data.append('model-file', file);
+        data.append('model', file);
         if (file.name.endsWith('.zip')) { // When uploading a zip file, ask for the main design file in the archive
             const entrypoint = window.prompt('Please enter the filename of the main design inside the archive.');
-            data.append('model-zip-entrypoint', entrypoint);
+            data.append('entrypoint', entrypoint);
         }
         upload.setAttribute('disabled', 'true');
         models.setAttribute('disabled', 'true');
